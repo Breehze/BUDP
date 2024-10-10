@@ -27,8 +27,9 @@ async def recv_channel(soc : socket.socket,ip : str,port : int) -> None:
 
 
 async def send_channel(soc : socket.socket,ip:str,port : int) -> None:
+    cur_event_loop = asyncio.get_event_loop()
     while True:
-        BUDP_in = str(input("BUDP_in: "))
+        BUDP_in = await cur_event_loop.run_in_executor(None,input,"BUDP_in: ")
         soc.sendto(BUDP_in.encode(),(ip,port))
         await(asyncio.sleep(0.1))
 
