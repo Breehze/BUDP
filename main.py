@@ -1,29 +1,45 @@
 import socket
 import asyncio
 import re
+import exceptions
+import utils
 
-class InvalidDestData(Exception):
-    pass
+print(utils.get_my_ip())
+"""
+Handshake:
+1. Hit target with conn request
+2. Target responds with:
+                        OKOK - Data transmission can now proceed
+                        REFU - Refuse incoming connection
+                        BUSY - Target is already connected to someone
+3. If OKOK exchange secondary ports  ~2bytes
 
+Header: 
+    PROTOCOL | 1byte
+    MESSAGE TYPE | 1byte
+    SEQ_NUMBER | 4byte   
+    PAYLOAD_SIZE | 2byte
+"""
 
-def con_conf() -> tuple[str,int]:
+async def con_conf() -> tuple[str,int]:
     con_info_in = str(input())    
     ip_check = r"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
     if not re.match(ip_check,con_info_in):
-        raise InvalidDestData
+        raise exceptions.InvalidDestData
     split_me_daddy = con_info_in.split(":")
     return (split_me_daddy[0],int(split_me_daddy[1]))    
         
 
 async def handshake():
-    pass
+    
+    pass 
 
 async def recv_channel(soc : socket.socket,ip : str,port : int) -> None:
     soc.bind((ip,port))
     soc.setblocking(False)
     while True:
         data =  await asyncio.get_event_loop().sock_recv(soc,1024) 
-        print(data)
+        print(f"\n{data.decode()}")
 
 
 async def send_channel(soc : socket.socket,ip:str,port : int) -> None:
@@ -36,19 +52,15 @@ async def send_channel(soc : socket.socket,ip:str,port : int) -> None:
 
 
 async def main():
-    dest_ip,dest_port = con_conf()
-    print(dest_ip,dest_port)
+    dest_ip,dest_port = await con_conf()
     handshake_soc = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     #############################
     #
-    # Handshake --> peer ip
+    # Handsh
     #
     #############################
     soc_recv = socket.socket(socket.AF_INET,socket.SOCK_DGRAM )  
     soc_send = socket.socket(socket.AF_INET,socket.SOCK_DGRAM )
-    await asyncio.gather(recv_channel(soc_recv,"147.175.160.21",9053),send_channel(soc_send,dest_ip,dest_port))
+    await asyncio.gather(recv_channel(soc_recv,utils.get_my_ip(),9053),send_channel(soc_send,dest_ip,dest_port))
     
-
-
-
 asyncio.run(main())
